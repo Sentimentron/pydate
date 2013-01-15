@@ -35,6 +35,7 @@ def is_slashed_date(time_fragment):
 def preprocess(text):
     ret = []
     add_counter = 0
+    ret_add = 0
     for frag in text.split(' '):
         
         frag = frag.strip()
@@ -43,7 +44,9 @@ def preprocess(text):
             continue
         
         if is_slashed_date(frag):
-            return frag, 3
+            ret.append(frag)
+            ret_add += 2
+            continue
         
         add = False
         if add_counter > 2:
@@ -63,14 +66,12 @@ def preprocess(text):
         
         for char in '0123456789':
             add = add or (char in frag)
-        if is_slashed_date(frag):
-            print add, frag
         if add:
             ret.append(frag)
             add_counter = 0
         else:
             add_counter += 1
-    return ' '.join(ret), len(ret)
+    return ' '.join(ret), len(ret) + ret_add
         
 
 def get_dates(html):
