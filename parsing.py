@@ -6,6 +6,7 @@ from datetime import datetime
 import requests 
 from pytz import timezone
 import pytz
+from timezones import is_timezone
 
 def convert_time_dotsep(time_fragment):
     hour, sep, minute = time_fragment.partition('.')
@@ -19,10 +20,34 @@ def convert_time_dotsep(time_fragment):
             return ':'.join([str(x) for x in [hour, minute]])
     return time_fragment
 
+def is_slashed_date(time_fragment):
+    frags = time_fragment.split("/")
+    if len(frags) != 3:
+        return False
+        
+    for frag in frags:
+        try:
+            frag = int(frag)
+        except ValueError:
+            return False
+    return True
+
 def preprocess(text):
     ret = []
+    add_counter = 0
     for frag in text.split(' '):
+        
+        frag = frag.strip()
+        
+        if len(frag) == 0:
+            continue
+        
+        if is_slashed_date(frag):
+            return frag, 3
+        
         add = False
+        if add_counter > 2:
+            add_counter = 0
         
         frag = convert_time_dotsep(frag)
         
@@ -30,15 +55,21 @@ def preprocess(text):
             add = add or (month_frag in frag)
             add = add or (month_frag.lower() in frag)
             add = add or (month_frag.upper() in frag)
+                
+        add = add or "AM" in frag or "am" in frag
+        add = add or "PM" in frag or "pm" in frag
         
-        add = add or "AM" in frag
-        add = add or "PM" in frag
+        add = add or is_timezone(frag)
         
         for char in '0123456789':
             add = add or (char in frag)
-        
+        if is_slashed_date(frag):
+            print add, frag
         if add:
             ret.append(frag)
+            add_counter = 0
+        else:
+            add_counter += 1
     return ' '.join(ret), len(ret)
         
 
