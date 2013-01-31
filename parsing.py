@@ -77,7 +77,10 @@ def preprocess(text):
 def get_dates(html):
     
     # Parse the HTML
-    soup = BeautifulSoup(html, "lxml")
+    if not isinstance(html, BeautifulSoup):
+        soup = BeautifulSoup(html, "lxml")
+    else:
+        soup = html
     
     # Set up a date dictionary
     dates = {}
